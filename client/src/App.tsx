@@ -15,6 +15,7 @@ import Complaints from "@/pages/Complaints";
 import Documents from "@/pages/Documents";
 import FAQ from "@/pages/FAQ";
 import Privacy from "@/pages/Privacy";
+import AdminDashboard from "@/pages/AdminDashboard";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -27,8 +28,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
  * - Dark mode support
  * - Responsive design
  */
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/documents" component={Documents} />
       <Route path="/faq" component={FAQ} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/admin" component={AdminDashboard} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

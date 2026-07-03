@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 export default function Membership() {
   const [formData, setFormData] = useState({
@@ -18,10 +20,39 @@ export default function Membership() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitted, setSubmitted] = useState(false);
+  const membershipMutation = trpc.forms.submitMembership.useMutation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Membership form submitted:", formData);
-    setFormData({ fullName: "", email: "", phone: "", address: "", occupation: "" });
+
+    // Validation
+    if (!formData.fullName.trim()) {
+      toast.error("الاسم الكامل مطلوب");
+      return;
+    }
+    if (!formData.email.trim()) {
+      toast.error("البريد الإلكتروني مطلوب");
+      return;
+    }
+    if (!formData.phone.trim()) {
+      toast.error("رقم الهاتف مطلوب");
+      return;
+    }
+
+    try {
+      const result = await membershipMutation.mutateAsync(formData);
+      if (result.success) {
+        setSubmitted(true);
+        toast.success(result.message);
+        setFormData({ fullName: "", email: "", phone: "", address: "", occupation: "" });
+        setTimeout(() => setSubmitted(false), 5000);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error("حدث خطأ أثناء معالجة الطلب");
+    }
   };
 
   const benefits = [
@@ -85,6 +116,17 @@ export default function Membership() {
                 نموذج الانضمام
               </h2>
 
+              {submitted ? (
+                <Card className="p-8 text-center space-y-4 bg-green-50 dark:bg-green-900/20 border-green-200">
+                  <div className="flex justify-center">
+                    <CheckCircle className="h-16 w-16 text-green-500" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-green-700">تم استلام طلبك بنجاح!</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    شكراً لاهتمامك بالانخراط في الجمعية. سيتم التواصل معك قريباً لتأكيد طلبك.
+                  </p>
+                </Card>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Full Name */}
                 <div>
@@ -97,7 +139,8 @@ export default function Membership() {
                     value={formData.fullName}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]"
+                    disabled={membershipMutation.isPending}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37] disabled:opacity-50"
                     placeholder="أدخل اسمك الكامل"
                   />
                 </div>
@@ -113,7 +156,8 @@ export default function Membership() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]"
+                    disabled={membershipMutation.isPending}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37] disabled:opacity-50"
                     placeholder="أدخل بريدك الإلكتروني"
                   />
                 </div>
@@ -129,7 +173,8 @@ export default function Membership() {
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]"
+                    disabled={membershipMutation.isPending}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37] disabled:opacity-50"
                     placeholder="أدخل رقم هاتفك"
                   />
                 </div>
@@ -144,8 +189,8 @@ export default function Membership() {
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]"
+                    disabled={membershipMutation.isPending}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37] disabled:opacity-50"
                     placeholder="أدخل عنوانك"
                   />
                 </div>
@@ -160,7 +205,8 @@ export default function Membership() {
                     name="occupation"
                     value={formData.occupation}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]"
+                    disabled={membershipMutation.isPending}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37] disabled:opacity-50"
                     placeholder="أدخل مهنتك"
                   />
                 </div>
@@ -170,14 +216,25 @@ export default function Membership() {
                   type="submit"
                   size="lg"
                   className="w-full bg-[#0F3A5F] hover:bg-[#0A2847] text-white font-bold"
+                  disabled={membershipMutation.isPending}
                 >
-                  تقديم طلب العضوية
+                  {membershipMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      جاري المعالجة...
+                    </>
+                  ) : (
+                    "تقديم طلب العضوية"
+                  )}
                 </Button>
               </form>
+              )}
 
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                سيتم التواصل معك قريباً لتأكيد عضويتك
-              </p>
+              {!submitted && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                  سيتم التواصل معك قريباً لتأكيد عضويتك
+                </p>
+              )}
             </div>
           </div>
         </div>
